@@ -7,64 +7,94 @@ document.addEventListener('DOMContentLoaded', () => {
   const removeColumn = document.querySelector('.remove-column');
   const table = document.querySelector('.field');
 
+  if (!table || !appendRow || !removeRow || !appendColumn || !removeColumn) {
+    return;
+  }
+
+  const tBody = table.tBodies[0] || table.createTBody();
+
+  if (!tBody.rows.length) {
+    initTableStructure();
+  }
+
+  updateButtons();
+
+  function initTableStructure() {
+    if (tBody.rows.length === 0) {
+      for (let i = 0; i < 2; i++) {
+        const row = document.createElement('tr');
+
+        for (let j = 0; j < 2; j++) {
+          const cell = document.createElement('td');
+
+          row.append(cell);
+        }
+
+        tBody.append(row);
+      }
+    }
+  }
+
+  function updateButtons() {
+    const rows = tBody.rows.length;
+    const cols = tBody.rows[0]?.cells.length || 0;
+
+    appendRow.disabled = rows >= 10;
+    removeRow.disabled = rows <= 2;
+    appendColumn.disabled = cols >= 10;
+    removeColumn.disabled = cols <= 2;
+  }
+
   appendRow.addEventListener('click', () => {
-    if (removeRow.disabled) {
-      removeRow.disabled = false;
+    if (tBody.rows.length >= 10) {
+      return;
     }
 
+    const cols = tBody.rows[0]?.cells.length || 0;
     const newRow = document.createElement('tr');
 
-    for (let i = 0; i < table.rows[0].cells.length; i++) {
-      const newTD = document.createElement('td');
-
-      newRow.append(newTD);
+    for (let i = 0; i < cols; i++) {
+      newRow.append(document.createElement('td'));
     }
-    table.append(newRow);
 
-    if (table.rows.length === 10) {
-      appendRow.disabled = true;
-    }
+    tBody.append(newRow);
+    updateButtons();
   });
 
   removeRow.addEventListener('click', () => {
-    if (appendRow.disabled) {
-      appendRow.disabled = false;
+    if (tBody.rows.length <= 2) {
+      return;
     }
 
-    table.lastElementChild.remove();
-
-    if (table.rows.length === 2) {
-      removeRow.disabled = true;
-    }
+    tBody.lastElementChild.remove();
+    updateButtons();
   });
 
   appendColumn.addEventListener('click', () => {
-    if (removeColumn.disabled) {
-      removeColumn.disabled = false;
+    const firstRow = tBody.rows[0];
+
+    if (firstRow.cells.length >= 10) {
+      return;
     }
 
-    for (const row of table.rows) {
-      const newTD = document.createElement('td');
-
-      row.append(newTD);
+    for (const row of tBody.rows) {
+      row.append(document.createElement('td'));
     }
 
-    if (table.rows[0].cells.length === 10) {
-      appendColumn.disabled = true;
-    }
+    updateButtons();
   });
 
   removeColumn.addEventListener('click', () => {
-    if (appendColumn.disabled) {
-      appendColumn.disabled = false;
+    const firstRow = tBody.rows[0];
+
+    if (firstRow.cells.length <= 2) {
+      return;
     }
 
-    for (const row of table.rows) {
+    for (const row of tBody.rows) {
       row.lastElementChild.remove();
     }
 
-    if (table.rows[0].cells.length === 2) {
-      removeColumn.disabled = true;
-    }
+    updateButtons();
   });
 });
